@@ -18,18 +18,18 @@ export default function Register() {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name) newErrors.name = "Full name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.name) newErrors.name = "Nama lengkap wajib diisi";
+    if (!formData.email) newErrors.email = "Email wajib diisi";
+    if (!formData.password) newErrors.password = "Kata sandi wajib diisi";
     if (!formData.password_confirmation) {
-      newErrors.password_confirmation = "Password confirmation is required";
+      newErrors.password_confirmation = "Konfirmasi kata sandi wajib diisi";
     }
     
     if (formData.password && formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = "Kata sandi harus minimal 6 karakter";
     }
     if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = "Passwords do not match";
+      newErrors.password_confirmation = "Kata sandi tidak cocok";
     }
     
     setErrors(newErrors);
@@ -49,7 +49,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      showToast("Please fill in all required fields correctly");
+      showToast("Harap isi semua kolom wajib dengan benar");
       return;
     }
     setIsLoading(true);
@@ -65,16 +65,16 @@ export default function Register() {
       
       if (!response.ok) {
         if (data.error.includes('Email is already registered')) {
-          throw new Error("Email is already registered");
+          throw new Error("Email sudah terdaftar");
         }
-        throw new Error(data.error || "Registration failed!");
+        throw new Error(data.error || "Pendaftaran gagal!");
       }
 
-      showToast(data.message || "Registration successful! Please check your email to verify your account.", "success");
+      showToast(data.message || "Pendaftaran berhasil! Silakan cek email Anda untuk memverifikasi akun.", "success");
       setTimeout(() => navigate("/login"), 3000);
     } catch (error) {
-      console.error("Error during registration:", error.message);
-      showToast(error.message || "An error occurred. Please try again.");
+      console.error("Error saat pendaftaran:", error.message);
+      showToast(error.message || "Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }
@@ -93,19 +93,19 @@ export default function Register() {
         <div className="w-full md:w-1/2 relative hidden md:block">
           <a href="#" className="absolute top-4 left-4 text-slate-50 text-2xl font-bold z-10 ">UBJ-CARE</a>
           <a href="/" className="absolute top-4 right-4 bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors duration-200 z-10">
-            Back to Home →
+            Kembali ke Beranda →
           </a>
           <div className="relative h-full">
             <img
               src="https://i.ibb.co/Z604TcdM/Whats-App-Image-2025-07-25-at-01-30-33.jpg"
-              alt="Desert landscape"
+              alt=" "
               className="w-full h-full object-cover opacity-100"
-              onError={(e) => { e.target.style.display = 'none'; console.log("Image failed to load"); }}
+              onError={(e) => { e.target.style.display = 'none'; console.log("Gambar gagal dimuat"); }}
             />
             <div className="absolute inset-0 bg-gray-800/50"></div>
             <div className="absolute bottom-8 left-8 text-slate-50">
-              <h2 className="text-xl md:text-2xl font-bold mb-2">Report Today</h2>
-              <h2 className="text-xl md:text-2xl font-bold">Resolve Tomorrow</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2">Lapor Hari Ini</h2>
+              <h2 className="text-xl md:text-2xl font-bold">Selesaikan Besok</h2>
               <div className="flex gap-2 mt-4">
                 <div className="w-3 h-1 bg-gray-300 rounded"></div>
                 <div className="w-3 h-1 bg-gray-300 rounded"></div>
@@ -117,21 +117,21 @@ export default function Register() {
 
         <div className="w-full md:w-1/2 p-6 sm:p-8 bg-white">
           <div className="max-w-xl mx-auto">
-            <h1 className="text-gray-900 text-xl sm:text-2xl font-extrabold mb-2">Create an Account</h1>
+            <h1 className="text-gray-900 text-xl sm:text-2xl font-extrabold mb-2">Buat Akun</h1>
             <p className="text-gray-600 mb-6 text-sm font-medium">
-              Already have an account?{" "}
-              <a href="/login" className="text-green-500 hover:underline font-medium">Log in</a>
+              Sudah punya akun?{" "}
+              <a href="/login" className="text-green-500 hover:underline font-medium">Masuk</a>
             </p>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Full Name</label>
+                <label className="text-gray-700 text-xs mb-1 block">Nama Lengkap</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Enter your full name"
+                  placeholder="Masukkan nama lengkap Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.name ? "border border-red-500" : ""}`}
                   required
                 />
@@ -145,7 +145,7 @@ export default function Register() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.email ? "border border-red-500" : ""}`}
                   required
                 />
@@ -153,13 +153,13 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Password</label>
+                <label className="text-gray-700 text-xs mb-1 block">Kata Sandi</label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
+                  placeholder="Masukkan kata sandi Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.password ? "border border-red-500" : ""}`}
                   required
                 />
@@ -167,13 +167,13 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Confirm Password</label>
+                <label className="text-gray-700 text-xs mb-1 block">Konfirmasi Kata Sandi</label>
                 <input
                   type="password"
                   name="password_confirmation"
                   value={formData.password_confirmation}
                   onChange={handleChange}
-                  placeholder="Confirm your password"
+                  placeholder="Konfirmasi kata sandi Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.password_confirmation ? "border border-red-500" : ""}`}
                   required
                 />
@@ -183,19 +183,19 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Phone (Optional)</label>
+                <label className="text-gray-700 text-xs mb-1 block">Telepon (Opsional)</label>
                 <input
                   type="text"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="Enter your phone number"
+                  placeholder="Masukkan nomor telepon Anda"
                   className="w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
               </div>
 
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Role</label>
+                <label className="text-gray-700 text-xs mb-1 block">Status</label>
                 <select
                   name="role"
                   value={formData.role}
@@ -220,7 +220,7 @@ export default function Register() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z" />
                   </svg>
                 ) : null}
-                {isLoading ? "Registering..." : "Create Account"}
+                {isLoading ? "Mendaftar..." : "Buat Akun"}
               </button>
             </form>
           </div>

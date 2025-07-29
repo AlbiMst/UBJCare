@@ -14,8 +14,8 @@ export default function Login() {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.email) newErrors.email = "Email wajib diisi";
+    if (!formData.password) newErrors.password = "Kata sandi wajib diisi";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -34,7 +34,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      showToast("Please fill in all required fields correctly");
+      showToast("Harap isi semua kolom wajib dengan benar");
       return;
     }
     setIsLoading(true);
@@ -50,20 +50,20 @@ export default function Login() {
       
       if (!response.ok) {
         if (data.error.includes("verify your email")) {
-          throw new Error("Please verify your email before logging in");
+          throw new Error("Harap verifikasi email Anda sebelum masuk");
         }
         if (data.error.includes("Invalid credentials")) {
-          throw new Error("Invalid email or password");
+          throw new Error("Email atau kata sandi salah");
         }
-        throw new Error(data.error || "Login failed!");
+        throw new Error(data.error || "Gagal masuk!");
       }
 
       localStorage.setItem("token", data.token);
-      showToast("Login successful!", "success");
+      showToast("Berhasil masuk!", "success");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (error) {
-      console.error("Error during login:", error.message);
-      showToast(error.message || "An error occurred. Please try again.");
+      console.error("Error saat masuk:", error.message);
+      showToast(error.message || "Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsLoading(false);
     }
@@ -82,19 +82,19 @@ export default function Login() {
         <div className="w-full md:w-1/2 relative hidden md:block">
           <a href="#" className="absolute top-4 left-4 text-slate-50 text-2xl font-bold z-10">UBJ-CARE</a>
           <a href="/" className="absolute top-4 right-4 bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs hover:bg-gray-200 transition-colors duration-200 z-10">
-            Back to Home →
+            Kembali ke Beranda →
           </a>
           <div className="relative h-full">
             <img
               src="https://i.ibb.co/Z604TcdM/Whats-App-Image-2025-07-25-at-01-30-33.jpg"
-              alt="Desert landscape"
+              alt=" "
               className="w-full h-full object-cover opacity-100"
-              onError={(e) => { e.target.style.display = 'none'; console.log("Image failed to load"); }}
+              onError={(e) => { e.target.style.display = 'none'; console.log("Gambar gagal dimuat"); }}
             />
             <div className="absolute inset-0 bg-gray-800/50"></div>
             <div className="absolute bottom-8 left-8 text-slate-50">
-              <h2 className="text-xl md:text-2xl font-bold mb-2">Report Today</h2>
-              <h2 className="text-xl md:text-2xl font-bold">Resolve Tomorrow</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-2">Lapor Hari Ini</h2>
+              <h2 className="text-xl md:text-2xl font-bold">Selesaikan Besok</h2>
               <div className="flex gap-2 mt-4">
                 <div className="w-3 h-1 bg-gray-300 rounded"></div>
                 <div className="w-3 h-1 bg-gray-300 rounded"></div>
@@ -106,10 +106,10 @@ export default function Login() {
 
         <div className="w-full md:w-1/2 p-6 sm:p-8 bg-white">
           <div className="max-w-xl mx-auto">
-            <h1 className="text-gray-900 text-xl sm:text-2xl font-extrabold mb-2">Sign In</h1>
+            <h1 className="text-gray-900 text-xl sm:text-2xl font-extrabold mb-2">Masuk</h1>
             <p className="text-gray-600 mb-6 text-sm font-medium">
-              Don't have an account?{" "}
-              <a href="/register" className="text-green-500 hover:underline font-medium">Create an account</a>
+              Belum punya akun?{" "}
+              <a href="/register" className="text-green-500 hover:underline font-medium">Buat akun</a>
             </p>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -120,7 +120,7 @@ export default function Login() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Enter your email"
+                  placeholder="Masukkan email Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.email ? "border border-red-500" : ""}`}
                   required
                 />
@@ -128,13 +128,13 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="text-gray-700 text-xs mb-1 block">Password</label>
+                <label className="text-gray-700 text-xs mb-1 block">Kata Sandi</label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
+                  placeholder="Masukkan kata sandi Anda"
                   className={`w-full bg-gray-100 text-gray-800 rounded-md p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ${errors.password ? "border border-red-500" : ""}`}
                   required
                 />
@@ -152,7 +152,7 @@ export default function Login() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z" />
                   </svg>
                 ) : null}
-                {isLoading ? "Signing In..." : "Sign In"}
+                {isLoading ? "Sedang Masuk..." : "Masuk"}
               </button>
             </form>
           </div>
