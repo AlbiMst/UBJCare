@@ -40,27 +40,51 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/login", {
+      const loginResponse = await fetch("http://127.0.0.1:8000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      const loginData = await loginResponse.json();
       
-      if (!response.ok) {
-        if (data.error.includes("verify your email")) {
+      if (!loginResponse.ok) {
+        if (loginData.error.includes("verify your email")) {
           throw new Error("Harap verifikasi email Anda sebelum masuk");
         }
-        if (data.error.includes("Invalid credentials")) {
+        if (loginData.error.includes("Invalid credentials")) {
           throw new Error("Email atau kata sandi salah");
         }
-        throw new Error(data.error || "Gagal masuk!");
+        throw new Error(loginData.error || "Gagal masuk!");
       }
 
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", loginData.token);
+
+      // Fetch user profile to get role
+      const profileResponse = await fetch("http://127.0.0.1:8000/api/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${loginData.token}`,
+        },
+      });
+
+      const profileData = await profileResponse.json();
+      
+      if (!profileResponse.ok) {
+        throw new Error("Gagal mengambil data profil");
+      }
+
       showToast("Berhasil masuk!", "success");
-      setTimeout(() => navigate("/dashboard"), 1500);
+
+      // Redirect based on role
+      setTimeout(() => {
+        if (profileData.role === "admin") {
+          navigate("/dashboard-admin");
+        } else {
+          navigate("/dashboard");
+        }
+      }, 1500);
     } catch (error) {
       console.error("Error saat masuk:", error.message);
       showToast(error.message || "Terjadi kesalahan. Silakan coba lagi.");
@@ -112,7 +136,7 @@ export default function Login() {
               <a href="/register" className="text-green-500 hover:underline font-medium">Buat akun</a>
             </p>
 
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-4">
               <div>
                 <label className="text-gray-700 text-xs mb-1 block">Email</label>
                 <input
@@ -142,7 +166,8 @@ export default function Login() {
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={isLoading}
                 className="w-full bg-green-500 text-white rounded-md p-3 text-sm hover:bg-green-700 disabled:bg-green-400 transition-colors duration-200 flex items-center justify-center font-normal font-medium"
               >
@@ -154,7 +179,7 @@ export default function Login() {
                 ) : null}
                 {isLoading ? "Sedang Masuk..." : "Masuk"}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Dashboard() {
+export default function DashboardAdmin() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
@@ -22,7 +22,7 @@ export default function Dashboard() {
         }
 
         const response = await fetch("http://127.0.0.1:8000/api/profile", {
-          method: "GET",
+          method: "GET",  
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -34,9 +34,9 @@ export default function Dashboard() {
           throw new Error("Gagal mengambil data profil");
         }
 
-        if (data.role === "admin") {
-          showToast("Akses ditolak. Hanya untuk non-admin.");
-          setTimeout(() => navigate("/dashboard-admin"), 1500);
+        if (data.role !== "admin") {
+          showToast("Akses ditolak. Hanya untuk admin.");
+          setTimeout(() => navigate("/dashboard"), 1500);
           return;
         }
 
@@ -94,7 +94,7 @@ export default function Dashboard() {
 
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Pengguna</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Admin</h1>
           <button
             onClick={handleLogout}
             className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors duration-200"
@@ -107,21 +107,21 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Selamat datang, {user?.name || "Pengguna"}!
+            Selamat datang, {user?.name || "Admin"}!
           </h2>
-          <p className="text-gray-600 mb-6">Ini adalah dashboard untuk {user?.role || "pengguna"}. Anda dapat melihat atau mengirim laporan.</p>
+          <p className="text-gray-600 mb-6">Ini adalah dashboard khusus untuk admin. Anda dapat mengelola pengguna, laporan, dan lainnya.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              <h3 className="text-lg font-medium text-gray-800">Buat Laporan</h3>
-              <p className="text-gray-600 mt-2">Kirim laporan baru untuk masalah yang Anda temui.</p>
+              <h3 className="text-lg font-medium text-gray-800">Manajemen Pengguna</h3>
+              <p className="text-gray-600 mt-2">Kelola data pengguna, termasuk mahasiswa, dosen, dan lainnya.</p>
               <button className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200">
-                Buat Laporan
+                Lihat Pengguna
               </button>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-              <h3 className="text-lg font-medium text-gray-800">Lihat Laporan</h3>
-              <p className="text-gray-600 mt-2">Lihat status laporan yang telah Anda kirim.</p>
+              <h3 className="text-lg font-medium text-gray-800">Laporan Sistem</h3>
+              <p className="text-gray-600 mt-2">Lihat dan kelola laporan yang masuk dari pengguna.</p>
               <button className="mt-4 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors duration-200">
                 Lihat Laporan
               </button>
