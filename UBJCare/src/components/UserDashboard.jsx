@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MessageSquare, Plus, LogOut, Camera, Phone, Mail, Clock, CheckCircle, AlertCircle, Eye } from 'lucide-react';
+import { User, MessageSquare, Plus, LogOut, Camera, Phone, Mail, Clock, CheckCircle, AlertCircle, Eye, Share2 } from 'lucide-react';
 import supabase from '../supabaseClient';
 import Sidebar from './Sidebar';
 import Modal from './Modal';
@@ -74,7 +74,6 @@ function ComplaintForm({ user, onComplaintSubmitted }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
       <div className="flex items-center gap-3 mb-4">
-        <Plus className="w-6 h-6 text-green-600" />
         <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Kirim Pengaduan Baru</h2>
       </div>
       {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
@@ -138,6 +137,7 @@ function UserDashboard({ user }) {
   const [userProfile, setUserProfile] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [copySuccess, setCopySuccess] = useState('');
   const complaintsPerPage = 10;
   const navigate = useNavigate();
 
@@ -208,6 +208,17 @@ function UserDashboard({ user }) {
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleShare = async (complaintId) => {
+    const shareUrl = `${window.location.origin}/complaint/${complaintId}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopySuccess(complaintId);
+      setTimeout(() => setCopySuccess(''), 2000);
+    } catch (err) {
+      console.error('Gagal menyalin URL:', err);
     }
   };
 
@@ -346,7 +357,6 @@ function UserDashboard({ user }) {
             <div className="px-4 py-3 border-b sm:px-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <MessageSquare className="w-6 h-6 text-blue-500" />
                   <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Pengaduan Saya</h2>
                 </div>
                 <input
@@ -435,12 +445,20 @@ function UserDashboard({ user }) {
                             {new Date(complaint.created_at).toLocaleDateString('id-ID')}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap sm:px-6">
-                            <button
-                              onClick={() => setSelectedComplaint(complaint)}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                              Lihat Detail
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setSelectedComplaint(complaint)}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
+                                Lihat Detail
+                              </button>
+                              <button
+                                onClick={() => handleShare(complaint.id)}
+                                className="text-green-600 hover:text-green-800 flex items-center gap-1 text-sm font-medium"
+                              >
+                                {copySuccess === complaint.id ? 'Tersalin!' : 'Bagikan'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

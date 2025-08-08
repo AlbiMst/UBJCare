@@ -5,7 +5,6 @@ import supabase from '../supabaseClient';
 import Sidebar from './Sidebar';
 import Modal from './Modal';
 
-// Komponen Formulir Pembaruan Progres (tidak berubah)
 function ProgressUpdateForm({ complaintId, user, onUpdateSubmitted, onCancel }) {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
@@ -109,6 +108,7 @@ function ProgressUpdateForm({ complaintId, user, onUpdateSubmitted, onCancel }) 
 function AdminDashboard({ user }) {
   const [activeTab, setActiveTab] = useState('complaints');
   const [complaints, setComplaints] = useState([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showProgressForm, setShowProgressForm] = useState(null);
@@ -119,7 +119,7 @@ function AdminDashboard({ user }) {
   const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, resolved: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const complaintsPerPage = 10;
+  const itemsPerPage = 10;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -138,7 +138,11 @@ function AdminDashboard({ user }) {
           setLoading(false);
           return;
         }
-        fetchComplaints();
+        if (activeTab === 'complaints') {
+          fetchComplaints();
+        } else if (activeTab === 'users') {
+          fetchUsers();
+        }
       } catch (err) {
         console.error('Kesalahan Sesi Tidak Terduga:', err);
         setError('Terjadi kesalahan tak terduga saat menyegarkan sesi.');
@@ -147,14 +151,18 @@ function AdminDashboard({ user }) {
     };
 
     refreshSession();
-  }, [navigate]);
+  }, [navigate, activeTab]);
 
   const fetchComplaints = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('complaints')
-        .select('*, progress_updates(id, description, image_url, created_at)')
+        .select(`
+          *,
+          progress_updates(id, description, image_url, created_at),
+          profiles!user_id(name)
+        `)
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Kesalahan Mengambil Pengaduan:', error);
@@ -173,6 +181,36 @@ function AdminDashboard({ user }) {
       console.error('Kesalahan Pengambilan Tidak Terduga:', err);
       setError('Terjadi kesalahan tak terduga saat mengambil pengaduan.');
       setComplaints([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id, name, phone, profile_photo_url')
+        .order('name', { ascending: true });
+      if (error) {
+        console.error('Kesalahan Mengambil Pengguna:', error);
+        setError(`Gagal mengambil daftar pengguna: ${error.message}`);
+        setUsers([]);
+      } else {
+        const formattedData = data.map(user => ({
+          user_id: user.user_id,
+          name: user.name || 'Tidak diketahui',
+          phone: user.phone || 'Tidak tersedia',
+          profile_photo_url: user.profile_photo_url
+        }));
+        setUsers(formattedData || []);
+        setError('');
+      }
+    } catch (err) {
+      console.error('Kesalahan Pengambilan Tidak Terduga:', err);
+      setError('Terjadi kesalahan tak terduga saat mengambil daftar pengguna.');
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -249,17 +287,27 @@ function AdminDashboard({ user }) {
 
   const filteredComplaints = complaints.filter(complaint =>
     complaint.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    complaint.description.toLowerCase().includes(searchQuery.toLowerCase())
+    complaint.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (complaint.profiles?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || '')
   );
 
-  const totalPages = Math.ceil(filteredComplaints.length / complaintsPerPage);
-  const startIndex = (currentPage - 1) * complaintsPerPage + 1;
-  const endIndex = Math.min(currentPage * complaintsPerPage, filteredComplaints.length);
-
-  const paginatedComplaints = filteredComplaints.slice(
-    (currentPage - 1) * complaintsPerPage,
-    currentPage * complaintsPerPage
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (user.phone || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.ceil(
+    activeTab === 'complaints' ? filteredComplaints.length / itemsPerPage : filteredUsers.length / itemsPerPage
+  );
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(
+    currentPage * itemsPerPage,
+    activeTab === 'complaints' ? filteredComplaints.length : filteredUsers.length
+  );
+
+  const paginatedItems = activeTab === 'complaints'
+    ? filteredComplaints.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    : filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -368,7 +416,6 @@ function AdminDashboard({ user }) {
             <div className="px-4 py-3 border-b sm:px-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <MessageSquare className="w-6 h-6 text-blue-500" />
                   <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Semua Pengaduan</h2>
                 </div>
                 <input
@@ -392,7 +439,7 @@ function AdminDashboard({ user }) {
                   </svg>
                   <span className="ml-3 text-gray-600">Memuat pengaduan...</span>
                 </div>
-              ) : paginatedComplaints.length === 0 ? (
+              ) : paginatedItems.length === 0 ? (
                 <div className="text-center py-12">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">
@@ -404,7 +451,7 @@ function AdminDashboard({ user }) {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Judul', 'Deskripsi', 'Status', 'Gambar', 'Dibuat', 'Aksi', 'Pembaruan'].map((header) => (
+                        {['Judul', 'Pengadu', 'Deskripsi', 'Status', 'Gambar', 'Dibuat', 'Aksi', 'Pembaruan'].map((header) => (
                           <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
                             {header}
                           </th>
@@ -412,7 +459,7 @@ function AdminDashboard({ user }) {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedComplaints.map((complaint) => (
+                      {paginatedItems.map((complaint) => (
                         <tr key={complaint.id} className="hover:bg-gray-50">
                           <td className="px-4 py-4 sm:px-6 max-w-xs">
                             <div className="text-sm font-medium text-gray-900 truncate">
@@ -420,10 +467,15 @@ function AdminDashboard({ user }) {
                             </div>
                           </td>
                           <td className="px-4 py-4 sm:px-6 max-w-xs">
+                            <div className="text-sm text-gray-900">
+                              {complaint.profiles?.name || 'Tidak diketahui'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 sm:px-6 max-w-xs">
                             <div className="text-sm text-gray-500">
                               {expandedDescriptions[complaint.id]
                                 ? complaint.description
-                                : complaint.description.slice(0, 20) + (complaint.description.length > 100 ? '...' : '')}
+                                : complaint.description.slice(0, 100) + (complaint.description.length > 100 ? '...' : '')}
                               {complaint.description.length > 100 && (
                                 <button
                                   onClick={() => toggleDescription(complaint.id)}
@@ -448,7 +500,6 @@ function AdminDashboard({ user }) {
                                 onClick={() => setSelectedImage(complaint.image_url)}
                                 className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
                               >
-                                <Eye className="w-4 h-4" />
                                 Lihat
                               </button>
                             ) : (
@@ -584,7 +635,6 @@ function AdminDashboard({ user }) {
                                     onClick={() => setSelectedImage(update.image_url)}
                                     className="mt-1 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
                                   >
-                                    <Eye className="w-3 h-3" />
                                     Lihat Gambar Penuh
                                   </button>
                                 </div>
@@ -598,6 +648,126 @@ function AdminDashboard({ user }) {
                 </div>
               )}
             </Modal>
+          </div>
+        </div>
+      );
+    } else if (activeTab === 'users') {
+      return (
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="px-4 py-3 border-b sm:px-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Daftar Pengguna</h2>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Cari pengguna..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-64 bg-gray-50 text-gray-800 rounded-md p-2 text-sm border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              {loading ? (
+                <div className="flex justify-center items-center py-12">
+                  <svg className="animate-spin h-8 w-8 text-green-600" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z" />
+                  </svg>
+                  <span className="ml-3 text-gray-600">Memuat pengguna...</span>
+                </div>
+              ) : paginatedItems.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">
+                    {searchQuery ? 'Tidak ada pengguna yang sesuai dengan pencarian.' : 'Tidak ada pengguna tersedia.'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {['Nama', 'Nomor Telepon', 'Foto Profil'].map((header) => (
+                          <th key={header} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6">
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {paginatedItems.map((user) => (
+                        <tr key={user.user_id} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 sm:px-6 max-w-xs">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {user.name}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 sm:px-6 max-w-xs">
+                            <div className="text-sm text-gray-900">
+                              {user.phone || 'Tidak tersedia'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap sm:px-6">
+                            {user.profile_photo_url ? (
+                              <button
+                                onClick={() => setSelectedImage(user.profile_photo_url)}
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                              >
+                                Lihat
+                              </button>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Tidak ada foto</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div className="flex items-center justify-between flex-col sm:flex-row">
+                      <div className="mb-4 sm:mb-0">
+                        <p className="text-sm text-gray-700">
+                          Menampilkan <span className="font-medium">{startIndex}</span> sampai <span className="font-medium">{endIndex}</span> dari <span className="font-medium">{filteredUsers.length}</span> hasil
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Paginasi">
+                          <a
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); handlePrevPage(); }}
+                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === 1 ? 'cursor-not-allowed' : ''}`}
+                            disabled={currentPage === 1}
+                          >
+                            <span className="sr-only">Sebelumnya</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </a>
+                          {renderPaginationItems()}
+                          <a
+                            href="#"
+                            onClick={(e) => { e.preventDefault(); handleNextPage(); }}
+                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === totalPages || totalPages === 0 ? 'cursor-not-allowed' : ''}`}
+                            disabled={currentPage === totalPages || totalPages === 0}
+                          >
+                            <span className="sr-only">Selanjutnya</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </a>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -641,11 +811,11 @@ function AdminDashboard({ user }) {
       <Modal
         isOpen={!!selectedImage}
         onClose={() => setSelectedImage(null)}
-        title="Gambar Pengaduan"
+        title="Gambar"
         size="lg"
       >
         {selectedImage && (
-          <img src={selectedImage} alt="Pengaduan" className="w-full h-auto rounded-md" />
+          <img src={selectedImage} alt="Gambar" className="w-full h-auto rounded-md" />
         )}
       </Modal>
       <Modal

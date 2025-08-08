@@ -19,7 +19,7 @@ function Sidebar({ activeTab, onTabChange, isAdmin, userName, userPhoto, onProfi
   return (
     <div className="w-full lg:w-64 bg-white border-r border-gray-200 h-screen flex flex-col fixed lg:sticky top-0 z-20">
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-lg font-bold text-gray-900 sm:text-xl">{isAdmin ? 'Panel Admin' : 'Dasbor'}</h1>
+        <h1 className="text-lg font-bold text-gray-900 sm:text-xl">{isAdmin ? 'Dasboard Admin' : 'Dasboard User'}</h1>
       </div>
       <nav className="flex-1 p-3 overflow-y-auto">
         <ul className="space-y-1">

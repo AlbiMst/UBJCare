@@ -2,10 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  'https://kcqttjvtmehtuxiaxsrn.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcXR0anZ0bWVodHV4aWF4c3JuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzODk0MDQsImV4cCI6MjA2ODk2NTQwNH0.jR0JHEAfALjKAmWLLcyZRznLbCeCwj1_5aiV7Sf9gtE'
-);
+import supabase from '../supabaseClient';
 
 export default function Login({ setUser }) {
   const [formData, setFormData] = useState({

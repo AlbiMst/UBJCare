@@ -6,6 +6,7 @@ import Register from './components/Register';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import HomePage from './pages/HomePage';
+import ComplaintView from './components/ComplaintView';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -33,6 +34,7 @@ function App() {
         <Route path="/register" element={user ? <Navigate to={user.user_metadata.role === 'admin' ? '/admin-dashboard' : '/dashboard'} /> : <Register setUser={setUser} />} />
         <Route path="/dashboard" element={user ? (user.user_metadata.role === 'admin' ? <Navigate to="/admin-dashboard" /> : <UserDashboard user={user} />) : <Navigate to="/login" />} />
         <Route path="/admin-dashboard" element={user ? (user.user_metadata.role === 'admin' ? <AdminDashboard user={user} /> : <Navigate to="/dashboard" />) : <Navigate to="/login" />} />
+        <Route path="/complaint/:id" element={<ComplaintView />} />
         <Route path="/" element={<HomePage />} />
       </Routes>
     </Router>
