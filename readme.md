@@ -2,9 +2,7 @@
 
 ## Demo Video
 
-<video src="demo.mp4" controls width="700">
-  Browser Anda tidak mendukung pemutaran video.
-</video>
+https://github.com/user-attachments/assets/24369c93-896c-41f5-9aff-81968ad11981
 
 ## Akun Uji Coba
 
