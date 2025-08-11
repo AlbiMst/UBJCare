@@ -2,10 +2,9 @@
 
 ## Demo Video
 
-<video src="assets/demo.mp4" controls width="700">
+<video src="demo.mp4" controls width="700">
   Browser Anda tidak mendukung pemutaran video.
 </video>
-> _Klik gambar di atas untuk menonton demo aplikasi UBJ Care._
 
 ## Akun Uji Coba
 
