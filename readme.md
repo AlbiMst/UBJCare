@@ -1,4 +1,22 @@
 ![TerapyApp Banner](https://placehold.co/1200x400/08CB00/FFFFFF?text=UBJ%20Care)
+
+## Demo Video
+
+<video src="assets/demo.mp4" controls width="700">
+  Browser Anda tidak mendukung pemutaran video.
+</video>
+> _Klik gambar di atas untuk menonton demo aplikasi UBJ Care._
+
+## Akun Uji Coba
+
+**USER**  
+- Email: `xecibap514@cotasen.com`  
+- Password: `user123`
+
+**ADMIN**  
+- Email: `admin.ubjcare@ac.id`  
+- Password: `admin123`
+
 # UBJ Care – Sistem Pengaduan Fasilitas Kampus
 
 ## Latar Belakang Permasalahan
@@ -39,7 +57,7 @@ Kurangnya sistem pengaduan yang terstruktur dan efisien juga menjadi kendala bag
 
 ## Arsitektur Database
 
-![Database ERD](./assets/db-erd.png) <!-- Ganti dengan gambar ERD asli jika ada -->
+![Database ERD](https://i.ibb.co.com/0pz0Qzfq/image.png)
 
 **Tabel utama dan field:**
 
@@ -139,8 +157,9 @@ CREATE TABLE progress_updates (
 
 ### Contoh Setting Policies Supabase
 
-![Supabase Policy 1](./assets/policy1.png)
-![Supabase Policy 2](./assets/policy2.png)
+![Supabase Policy 1](https://i.ibb.co.com/kgYNhTHP/image.png)
+![Supabase Policy 2](https://i.ibb.co.com/gZRtcNzc/image.png)
+![Supabase Policy 3](https://i.ibb.co.com/mVdbNtSJ/image.png)
 
 ## Dokumentasi API
 
@@ -554,13 +573,3 @@ CREATE TABLE progress_updates (
   - `apikey: <VITE_SUPABASE_ANON_KEY>`
 - **Response:**
   - 200 OK: Mengembalikan URL publik (contoh: https://<project-id>.supabase.co/storage/v1/object/public/dbimg/public/<user_id>/<file_name>.jpg).
-
-## Screenshot Website
-
-![Tampilan Login](./assets/screenshot-login.png)
-![Tampilan Dashboard](./assets/screenshot-dashboard.png)
-![Tampilan Form Pengaduan](./assets/screenshot-form.png)
-
----
-
-> **Catatan:** Ganti gambar/ikon/screenshot sesuai kebutuhan dan struktur folder Anda.
