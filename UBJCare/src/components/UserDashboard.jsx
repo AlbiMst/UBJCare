@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MessageSquare, Plus, LogOut, Camera, Phone, Mail, Clock, CheckCircle, AlertCircle, Eye, Share2 } from 'lucide-react';
+import { User, MessageSquare, Plus, LogOut, Camera, Phone, Mail, Clock, CheckCircle, AlertCircle, Eye, Share2, Menu } from 'lucide-react';
 import supabase from '../supabaseClient';
 import Sidebar from './Sidebar';
 import Modal from './Modal';
@@ -72,7 +72,7 @@ function ComplaintForm({ user, onComplaintSubmitted }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+    <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-6">
       <div className="flex items-center gap-3 mb-4">
         <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Kirim Pengaduan Baru</h2>
       </div>
@@ -138,6 +138,7 @@ function UserDashboard({ user }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [copySuccess, setCopySuccess] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const complaintsPerPage = 10;
   const navigate = useNavigate();
 
@@ -254,7 +255,7 @@ function UserDashboard({ user }) {
 
   const renderPaginationItems = () => {
     const items = [];
-    const maxVisiblePages = 5;
+    const maxVisiblePages = window.innerWidth < 640 ? 3 : 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
@@ -268,14 +269,14 @@ function UserDashboard({ user }) {
           key={1}
           href="#"
           onClick={(e) => { e.preventDefault(); handlePageClick(1); }}
-          className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="relative inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           1
         </a>
       );
       if (startPage > 2) {
         items.push(
-          <span key="ellipsis-start" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+          <span key="ellipsis-start" className="relative inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700">
             ...
           </span>
         );
@@ -288,7 +289,7 @@ function UserDashboard({ user }) {
           key={i}
           href="#"
           onClick={(e) => { e.preventDefault(); handlePageClick(i); }}
-          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 ${i === currentPage ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-gray-700'} text-sm font-medium hover:bg-gray-50`}
+          className={`relative inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 ${i === currentPage ? 'bg-indigo-50 text-indigo-600' : 'bg-white text-gray-700'} text-xs sm:text-sm font-medium hover:bg-gray-50`}
         >
           {i}
         </a>
@@ -298,7 +299,7 @@ function UserDashboard({ user }) {
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         items.push(
-          <span key="ellipsis-end" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+          <span key="ellipsis-end" className="relative inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700">
             ...
           </span>
         );
@@ -308,7 +309,7 @@ function UserDashboard({ user }) {
           key={totalPages}
           href="#"
           onClick={(e) => { e.preventDefault(); handlePageClick(totalPages); }}
-          className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="relative inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           {totalPages}
         </a>
@@ -316,6 +317,71 @@ function UserDashboard({ user }) {
     }
 
     return items;
+  };
+
+  // Mobile Card Component for Complaints
+  const ComplaintCard = ({ complaint }) => (
+    <div className="bg-white p-4 rounded-lg shadow-sm border space-y-3">
+      <div className="flex justify-between items-start">
+        <h3 className="font-medium text-gray-900 text-sm truncate flex-1 mr-2">{complaint.title}</h3>
+        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(complaint.status)} flex-shrink-0`}>
+          {getStatusIcon(complaint.status)}
+          {complaint.status === 'pending' ? 'Menunggu' : 
+           complaint.status === 'in_progress' ? 'Proses' : 
+           complaint.status === 'resolved' ? 'Selesai' : complaint.status}
+        </div>
+      </div>
+      
+      <div className="text-sm text-gray-500">
+        {expandedDescriptions[complaint.id]
+          ? complaint.description
+          : complaint.description.slice(0, 80) + (complaint.description.length > 80 ? '...' : '')}
+        {complaint.description.length > 80 && (
+          <button
+            onClick={() => toggleDescription(complaint.id)}
+            className="ml-1 text-blue-600 hover:underline text-sm"
+          >
+            {expandedDescriptions[complaint.id] ? 'Sembunyikan' : 'Selengkapnya'}
+          </button>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span>{new Date(complaint.created_at).toLocaleDateString('id-ID')}</span>
+        {complaint.image_url && (
+          <button
+            onClick={() => setSelectedImage(complaint.image_url)}
+            className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+          >
+            <Eye className="w-3 h-3" />
+            Gambar
+          </button>
+        )}
+      </div>
+      
+      <div className="flex flex-col sm:flex-row gap-2">
+        <button
+          onClick={() => setSelectedComplaint(complaint)}
+          className="px-3 py-1.5 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors"
+        >
+          Lihat Detail
+        </button>
+        <button
+          onClick={() => handleShare(complaint.id)}
+          className="px-3 py-1.5 bg-green-500 text-white text-xs rounded-md hover:bg-green-600 transition-colors flex items-center justify-center gap-1"
+        >
+          <Share2 className="w-3 h-3" />
+          {copySuccess === complaint.id ? 'Tersalin!' : 'Bagikan'}
+        </button>
+      </div>
+    </div>
+  );
+
+  const toggleDescription = (id) => {
+    setExpandedDescriptions((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   const renderContent = () => {
@@ -327,38 +393,29 @@ function UserDashboard({ user }) {
         }));
       };
 
-      const toggleDescription = (id) => {
-        setExpandedDescriptions((prev) => ({
-          ...prev,
-          [id]: !prev[id],
-        }));
-      };
-
       return (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {[
               { title: 'Pengaduan Saya', value: stats.total, icon: MessageSquare, color: 'text-blue-500' },
               { title: 'Menunggu', value: stats.pending, icon: Clock, color: 'text-yellow-500' },
               { title: 'Dalam Proses', value: stats.inProgress, icon: AlertCircle, color: 'text-blue-500' },
               { title: 'Selesai', value: stats.resolved, icon: CheckCircle, color: 'text-green-600' },
             ].map((stat, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-4 border flex items-center justify-between hover:shadow-md transition-shadow">
+              <div key={index} className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <stat.icon className={`w-10 h-10 ${stat.color}`} />
+                <stat.icon className={`w-6 h-6 sm:w-10 sm:h-10 ${stat.color}`} />
               </div>
             ))}
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-4 py-3 border-b sm:px-6">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Pengaduan Saya</h2>
-                </div>
+            <div className="px-3 py-3 border-b sm:px-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">Pengaduan Saya</h2>
                 <input
                   type="text"
                   placeholder="Cari pengaduan..."
@@ -367,27 +424,38 @@ function UserDashboard({ user }) {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-64 bg-gray-50 text-gray-800 rounded-md p-2 text-sm border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full sm:w-64 bg-gray-50 text-gray-800 rounded-md p-2 text-sm border focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
-            <div className="overflow-x-auto">
-              {paginatedComplaints.length === 0 ? (
-                <div className="text-center py-12">
-                  <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">
-                    {searchQuery ? 'Tidak ada pengaduan yang sesuai dengan pencarian.' : 'Belum ada pengaduan yang dikirim.'}
-                  </p>
-                  {!searchQuery && (
-                    <p className="text-sm text-gray-400">Kirim pengaduan pertama Anda menggunakan formulir.</p>
-                  )}
+            
+            {paginatedComplaints.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">
+                  {searchQuery ? 'Tidak ada pengaduan yang sesuai dengan pencarian.' : 'Belum ada pengaduan yang dikirim.'}
+                </p>
+                {!searchQuery && (
+                  <p className="text-sm text-gray-400">Kirim pengaduan pertama Anda menggunakan formulir.</p>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Mobile View - Cards */}
+                <div className="block sm:hidden">
+                  <div className="p-4 space-y-4">
+                    {paginatedComplaints.map((complaint) => (
+                      <ComplaintCard key={complaint.id} complaint={complaint} />
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <>
+
+                {/* Desktop View - Table */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Judul', 'Deskripsi', 'Status', 'Gambar', 'Dikirim', 'Aksi'].map((header) => (
+                        {['Judul', 'Deskripsi', 'Status', 'Gambar', 'Dikirim', 'Pembaruan'].map((header) => (
                           <th 
                             key={header} 
                             className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sm:px-6"
@@ -464,45 +532,48 @@ function UserDashboard({ user }) {
                       ))}
                     </tbody>
                   </table>
-                  <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
-                    <div className="flex items-center justify-between flex-col sm:flex-row">
-                      <div className="mb-4 sm:mb-0">
-                        <p className="text-sm text-gray-700">
-                          Menampilkan <span className="font-medium">{startIndex}</span> sampai <span className="font-medium">{endIndex}</span> dari <span className="font-medium">{filteredComplaints.length}</span> hasil
-                        </p>
-                      </div>
-                      <div>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Paginasi">
-                          <a
-                            href="#"
-                            onClick={(e) => { e.preventDefault(); handlePrevPage(); }}
-                            className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === 1 ? 'cursor-not-allowed' : ''}`}
-                            disabled={currentPage === 1}
-                          >
-                            <span className="sr-only">Sebelumnya</span>
-                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </a>
-                          {renderPaginationItems()}
-                          <a
-                            href="#"
-                            onClick={(e) => { e.preventDefault(); handleNextPage(); }}
-                            className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === totalPages || totalPages === 0 ? 'cursor-not-allowed' : ''}`}
-                            disabled={currentPage === totalPages || totalPages === 0}
-                          >
-                            <span className="sr-only">Selanjutnya</span>
-                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                            </svg>
-                          </a>
-                        </nav>
-                      </div>
+                </div>
+
+                {/* Pagination */}
+                <div className="bg-white px-3 py-3 border-t border-gray-200 sm:px-6">
+                  <div className="flex items-center justify-between flex-col sm:flex-row gap-4 sm:gap-0">
+                    <div className="order-2 sm:order-1">
+                      <p className="text-sm text-gray-700">
+                        Menampilkan <span className="font-medium">{startIndex}</span> sampai <span className="font-medium">{endIndex}</span> dari <span className="font-medium">{filteredComplaints.length}</span> hasil
+                      </p>
+                    </div>
+                    <div className="order-1 sm:order-2">
+                      <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Paginasi">
+                        <a
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); handlePrevPage(); }}
+                          className={`relative inline-flex items-center px-1 sm:px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === 1 ? 'cursor-not-allowed' : ''}`}
+                          disabled={currentPage === 1}
+                        >
+                          <span className="sr-only">Sebelumnya</span>
+                          <svg className="h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </a>
+                        {renderPaginationItems()}
+                        <a
+                          href="#"
+                          onClick={(e) => { e.preventDefault(); handleNextPage(); }}
+                          className={`relative inline-flex items-center px-1 sm:px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs sm:text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === totalPages || totalPages === 0 ? 'cursor-not-allowed' : ''}`}
+                          disabled={currentPage === totalPages || totalPages === 0}
+                        >
+                          <span className="sr-only">Selanjutnya</span>
+                          <svg className="h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </a>
+                      </nav>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+            
             <Modal
               isOpen={!!selectedComplaint}
               onClose={() => {
@@ -529,8 +600,8 @@ function UserDashboard({ user }) {
                           <div key={update.id} className="relative pl-6 pb-4 border-l-2 border-blue-200">
                             <div className="absolute w-3 h-3 bg-blue-500 rounded-full -left-1.5 border border-white"></div>
                             <div className="bg-gray-50 p-4 rounded-lg">
-                              <div className="flex justify-between items-start">
-                                <div>
+                              <div className="flex justify-between items-start flex-col sm:flex-row gap-2 sm:gap-0">
+                                <div className="flex-1">
                                   <h4 className="text-sm font-medium text-gray-800">Pembaruan</h4>
                                   <p className={`text-sm text-gray-700 mt-1 ${expandedUpdates[update.id] ? 'whitespace-pre-line' : 'line-clamp-3'}`}>
                                     {update.description}
@@ -544,7 +615,7 @@ function UserDashboard({ user }) {
                                     </button>
                                   )}
                                 </div>
-                                <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                <span className="text-xs text-gray-500 whitespace-nowrap">
                                   {new Date(update.created_at).toLocaleString('id-ID')}
                                 </span>
                               </div>
@@ -590,7 +661,7 @@ function UserDashboard({ user }) {
     }
 
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+      <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-6">
         <div className="text-center py-12 text-gray-500">Pilih item menu untuk melihat konten</div>
       </div>
     );
@@ -601,7 +672,7 @@ function UserDashboard({ user }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-montserrat flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gray-50 font-montserrat flex">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -609,23 +680,31 @@ function UserDashboard({ user }) {
         userName={user.user_metadata.name}
         userPhoto={userProfile?.profile_photo_url}
         onProfileClick={handleProfileClick}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
       />
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-          <div className="px-4 py-3 sm:px-6 flex justify-between items-center">
-            <div>
+      <div className="flex-1 flex flex-col w-full lg:ml-0">
+        <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+          <div className="px-3 py-3 sm:px-6 flex justify-between items-center">
+            <div className="flex items-center">
+              <button
+                className="lg:hidden mr-3 p-2 rounded-md hover:bg-gray-100"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu className="h-6 w-6" />
+              </button>
               <p className="text-sm text-gray-600">Selamat datang, {user.user_metadata.name}</p>
             </div>
             <button
               onClick={() => supabase.auth.signOut().then(() => navigate('/login'))}
-              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors text-sm"
+              className="flex items-center gap-2 bg-red-500 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-red-600 transition-colors text-sm"
             >
               <LogOut className="w-4 h-4" />
-              Keluar
+              <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-3 sm:p-6">
           {renderContent()}
         </main>
       </div>

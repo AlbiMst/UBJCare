@@ -62,7 +62,6 @@ export default function Register({ setUser }) {
 
       setUser(data.user);
       showToast('Pendaftaran berhasil! Silakan cek email Anda untuk memverifikasi akun.', 'success');
-      setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       console.error('Error saat pendaftaran:', err.message);
       showToast(err.message || 'Pendaftaran gagal!');

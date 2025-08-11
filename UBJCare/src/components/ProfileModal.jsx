@@ -107,19 +107,19 @@ function ProfileModal({ user, onClose }) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Profile Photo */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
           {profile.profile_photo_url ? (
             <img
               src={profile.profile_photo_url}
               alt="Profil"
-              className="w-20 h-20 rounded-full object-cover border-4 border-gray-200"
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-4 border-gray-200 flex-shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
-              <User className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <User className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
             </div>
           )}
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Camera className="w-4 h-4 inline mr-1" />
               Foto Profil
@@ -128,7 +128,7 @@ function ProfileModal({ user, onClose }) {
               type="file"
               accept="image/jpeg"
               onChange={handlePhotoChange}
-              className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="w-full text-xs sm:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:sm:text-sm file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
               disabled={loading}
             />
           </div>
@@ -145,7 +145,7 @@ function ProfileModal({ user, onClose }) {
             placeholder="Masukkan nama lengkap Anda"
             value={profile.name}
             onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-            className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 text-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 text-sm border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             disabled={loading}
           />
         </div>
@@ -161,7 +161,7 @@ function ProfileModal({ user, onClose }) {
             placeholder="Masukkan nomor telepon Anda"
             value={profile.phone}
             onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-            className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 text-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full bg-gray-50 text-gray-800 rounded-lg p-3 text-sm border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             disabled={loading}
           />
         </div>
@@ -180,10 +180,10 @@ function ProfileModal({ user, onClose }) {
           />
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <button
             type="submit"
-            className={`flex-1 bg-blue-500 text-white rounded-lg p-3 text-sm font-medium hover:bg-blue-600 disabled:bg-blue-400 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex-1 bg-green-500 text-white rounded-lg p-3 text-sm font-medium hover:bg-green-600 disabled:bg-green-400 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             disabled={loading}
           >
             {loading ? 'Memperbarui...' : 'Perbarui Profil'}
