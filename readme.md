@@ -1,4 +1,4 @@
-![TerapyApp Banner](https://placehold.co/1200x400/08CB00/FFFFFF?text=UBJ%20Care)
+![Banner](https://placehold.co/1200x400/08CB00/FFFFFF?text=UBJ%20Care)
 
 ## Demo Video
 
